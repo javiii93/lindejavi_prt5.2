@@ -5,8 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Scanner;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -21,13 +23,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.TypeInfo;
 import org.w3c.dom.UserDataHandler;
+import org.xml.sax.SAXException;
 
 import java.io.File;
 
 
 public class Main {
-
-	public static void main(String[] args) {
+	static Scanner sc;
+	static String curso,alumno;
+	static File fXmlFile;
+	public static void main(String[] args) throws ParserConfigurationException, SAXException, IOException {
 		// TODO Auto-generated method stub
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -79,33 +84,23 @@ public class Main {
 				eProfes1.appendChild(doc.createTextNode("Fuentes, Julian"));
 				eProfes.appendChild(eProfes1);
 				eModuls.appendChild(eProfes);
-				
-				
-				
-				
 				Element eUfs=doc.createElement("ufs");
 				Element eUf0=doc.createElement("uf");
-				Element eUfs1=doc.createElement("Persistencia en fitxers");
-				eUfs1.setAttribute("n","1");
-				eUfs0.appendChild(eUfs1);
-				eUfs.appendChild(eUfs0);
-				/*
-				Element eUfs2=doc.createElement("Persistencia en BDR-BDOR-BDOO");
-				Attr at1=doc.createAttribute("n");
-				at1.setValue("2");
-				eUfs2.setAttributeNode(at1);
-				eUfs.appendChild(eUfs2);
-				Element eUfs3=doc.createElement("Persistencia en BD natives XML");
-				Attr at2=doc.createAttribute("n");
-				at2.setValue("3");
-				eUfs3.setAttributeNode(at2);
-				eUfs.appendChild(eUfs3);
-				Element eUfs4=doc.createElement("Components d'acces a dades");
-				Attr at4=doc.createAttribute("n");
-				at4.setValue("4");
-				eUfs4.setAttributeNode(at4);
-				eUfs.appendChild(eUfs4);
-				*/
+				eUf0.appendChild(doc.createTextNode("Persistencia en fitxers"));
+				eUf0.setAttribute("n","1");
+				eUfs.appendChild(eUf0);
+				Element eUf1=doc.createElement("uf");
+				eUf1.appendChild(doc.createTextNode("Persistencia en BDR-BDOR-BDOO"));
+				eUf1.setAttribute("n","2");
+				eUfs.appendChild(eUf1);
+				Element eUf2=doc.createElement("uf");
+				eUf2.appendChild(doc.createTextNode("Persistencia en BD natives XML"));
+				eUf2.setAttribute("n","3");
+				eUfs.appendChild(eUf2);
+				Element eUf3=doc.createElement("uf");
+				eUf3.appendChild(doc.createTextNode("Components d'acces a dades"));
+				eUf3.setAttribute("n","4");
+				eUfs.appendChild(eUf3);
 				eModuls.appendChild(eUfs);
 				
 				
@@ -126,7 +121,92 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		System.out.println(introducirCurso());
+		System.out.println(introducirNombreAlumno());
+		
 
+	}
+	static public boolean introducirCurso() throws ParserConfigurationException, SAXException, IOException {
+		
+		fXmlFile = new File("Fichero.xml");
+		
+		sc=new Scanner(System.in);
+		System.out.println("\nIntroduce el nombre del curso: ");
+		curso=sc.next().toUpperCase();
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(fXmlFile);
+		NodeList nList = doc.getElementsByTagName("curs");
+		for(int i=0;i<nList.getLength();i++) {
+			Node nNode=nList.item(i);
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+				Element eEl = (Element) nNode;
+
+				if(eEl.getAttribute("id")==curso) {
+					return true;
+				}
+
+			}
+		}sc.next();
+		return false;
+	}
+	@SuppressWarnings("unlikely-arg-type")
+	static public boolean introducirNombreAlumno() throws ParserConfigurationException, SAXException, IOException {
+		if(curso=="") {
+			System.out.println("Primero introduzca un curso para añadir o eliminar un alumno");
+			return false;
+		}
+		fXmlFile = new File("Fichero.xml");
+		
+		sc=new Scanner(System.in);
+		System.out.println("\nIntroduce el nombre del alumno de la siguiente manera: ");
+		System.out.println("APELLIDO, Nombre");
+		System.out.println("El apellido en mayusculas y en el nombre con la primera en mayusculas");
+		alumno=sc.next().toUpperCase();
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(fXmlFile);
+		NodeList nList = doc.getElementsByTagName("curs");
+		for(int i=0;i<nList.getLength();i++) {
+			Node nNode=nList.item(i);
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+				Element eEl = (Element) nNode;
+
+				if(eEl.getAttribute("id")==curso) {
+					NodeList nList2 = doc.getElementsByTagName("alumnes");
+					
+					for(int j=0;j<nList2.getLength();j++) {
+						Node nNode2=nList2.item(j);
+						if (nNode2.getNodeType() == Node.ELEMENT_NODE) {
+							Element eEl2 = (Element) nNode;
+							if(eEl2.getElementsByTagName("alumne").equals(alumno)) {
+								sc.next();
+								return true;
+							}
+						}
+					}
+				}
+
+			}
+		}sc.next();
+		return false;
+		
+		
+		
+		
+	}
+	static public void eliminarAlumno() throws ParserConfigurationException, SAXException, IOException {
+		while(!introducirCurso()) {
+			System.out.println("El curso no existe o no se ha reconocido vuelva a introducirlo");
+		}
+		
+		
+	}static public void añadirAlumno() {
+		
+		
 	}
 	}
 
